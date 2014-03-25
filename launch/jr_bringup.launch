@@ -4,15 +4,23 @@
 
   <group ns="$(env ROBOT)">
    <param name="robot_description"
-           command="$(find xacro)/xacro.py '$(find jr_description)/urdf/jr.urdf.xacro'" />
+     command="$(find xacro)/xacro.py '$(find jr_description)/urdf/jr.urdf.xacro'" />
 
-    <node pkg="nodelet" name="nodelet_manager" type="nodelet" args="manager" output="screen" />
-    <node pkg="kangaroo_driver" name="kangaroo_driver" type="kangaroo_driver_node" respawn="true" output="screen" />
+    <node pkg="nodelet" name="nodelet_manager" type="nodelet" args="manager" respawn="true" output="screen" />
+
+    <node pkg="kangaroo_driver" name="kangaroo_driver" type="kangaroo_driver_node" respawn="true" output="screen">
+      <param name="port" value="/dev/robot/motor_controller" />
+      <param name="ch1_joint_name" value="base_link_to_left_front_wheel_joint" />
+      <param name="ch2_joint_name" value="base_link_to_right_front_wheel_joint" />
+    </node>
+
     <node pkg="nodelet" type="nodelet" name="jr_controller" 
       args="load angel_controller/angel_controller_nodelet nodelet_manager"
       output="screen">
+      <param name="wheel_base" value="0.2286" />
+      <param name="wheel_diam" value="0.117475" />
+      <param name="left_wheel_joint" value="base_link_to_left_front_wheel_joint" />
+      <param name="right_wheel_joint" value="base_link_to_right_front_wheel_joint" />
     </node>
   </group>
-
-<include file="$(find turtlebot_arm_bringup)/launch/arm.launch"/>
 </launch>
