@@ -6,6 +6,10 @@
    <param name="robot_description"
      command="$(find xacro)/xacro.py '$(find jr_description)/urdf/jr.urdf.xacro'" />
 
+    <node name="robot_state_publisher"
+      pkg="robot_state_publisher"
+      type="robot_state_publisher" />
+
     <node pkg="nodelet" name="nodelet_manager" type="nodelet" args="manager" respawn="true" output="screen" />
 
     <node pkg="kangaroo_driver" name="kangaroo_driver" type="kangaroo_driver_node" respawn="true" output="screen">
