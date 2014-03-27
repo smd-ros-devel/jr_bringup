@@ -1,30 +1,69 @@
 <?xml version="1.0"?>
 <launch>
-  <param name="tf_prefix" value="$(env ROBOT)" />
-
   <group ns="$(env ROBOT)">
-   <param name="robot_description"
-     command="$(find xacro)/xacro.py '$(find jr_description)/urdf/jr.urdf.xacro'" />
+    <param name="robot_description"
+      command="$(find xacro)/xacro.py '$(find jr_description)/urdf/jr.urdf.xacro'" />
+
+    <node pkg="nodelet" name="nodelet_manager" type="nodelet" args="manager" respawn="true" output="screen" />
 
     <node name="robot_state_publisher"
       pkg="robot_state_publisher"
       type="robot_state_publisher" />
 
-    <node pkg="nodelet" name="nodelet_manager" type="nodelet" args="manager" respawn="true" output="screen" />
-
     <node pkg="kangaroo_driver" name="kangaroo_driver" type="kangaroo_driver_node" respawn="true" output="screen">
       <param name="port" value="/dev/robot/motor_controller" />
-      <param name="ch1_joint_name" value="base_link_to_left_front_wheel_joint" />
-      <param name="ch2_joint_name" value="base_link_to_right_front_wheel_joint" />
+      <param name="ch1_joint_name" value="base_link_to_front_left_wheel_joint" />
+      <param name="ch2_joint_name" value="base_link_to_front_right_wheel_joint" />
+      <remap from="joint_state" to="kangaroo_driver_node/joint_state" />
     </node>
 
-    <node pkg="nodelet" type="nodelet" name="jr_controller" 
-      args="load angel_controller/angel_controller_nodelet nodelet_manager"
+    <node pkg="nodelet" type="nodelet" name="base_controller"
+      args="load diff_drive_controller/base_controller_nodelet nodelet_manager"
       output="screen">
       <param name="wheel_base" value="0.2286" />
       <param name="wheel_diam" value="0.117475" />
-      <param name="left_wheel_joint" value="base_link_to_left_front_wheel_joint" />
-      <param name="right_wheel_joint" value="base_link_to_right_front_wheel_joint" />
+      <param name="left_wheel_joint" value="base_link_to_front_left_wheel_joint" />
+      <param name="right_wheel_joint" value="base_link_to_front_right_wheel_joint" />
+    </node>
+
+    <node pkg="nodelet" type="nodelet" name="base_twist"
+      args="load diff_drive_controller/base_twist_nodelet nodelet_manager"
+      output="screen">
+      <param name="frame_id" value="base_footprint" />
+      <param name="wheel_base" value="0.2286" />
+      <param name="wheel_diam" value="0.117475" />
+      <param name="left_wheel_joint" value="base_link_to_front_left_wheel_joint" />
+      <param name="right_wheel_joint" value="base_link_to_front_right_wheel_joint" />
+      <remap from="joint_state" to="kangaroo_driver_node/joint_state" />
+    </node>
+
+    <node pkg="nodelet" type="nodelet" name="twist_integrator"
+      args="load diff_drive_controller/basic_twist_integrator_nodelet nodelet_manager"
+      output="screen">
+      <param name="frame_id" value="encoder_odom" />
+      <param name="pub_transform" value="true" />
+    </node>
+
+    <node pkg="joint_state_publisher" type="joint_state_publisher"
+     name="joint_state_publisher" respawn="true" output="screen">
+      <param name="use_gui" value="false" />
+      <param name="rate" value="30" />
+      <param name="publish_default_positions" value="true" />
+      <param name="publish_default_velocities" value="true" />
+      <rosparam param="source_list">['kangaroo_driver_node/joint_state']</rosparam>
+    </node>
+
+    <node pkg="nodelet" type="nodelet" name="wifi_monitor"
+      args="load smd_wifi_monitor/wifimon nodelet_manager"
+      output="screen" respawn="true">
+      <param name="poll_interval" value="2" />
+      <rosparam param="dev_list">['wlan0']</rosparam>
+    </node>
+
+    <node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node"
+     output="screen" respawn="true">
+      <param name="frame_id" value="laser" />
+      <param name="port" value="/dev/robot/lidar" />
     </node>
   </group>
 </launch>
