@@ -59,6 +59,19 @@
       <param name="poll_interval" value="2" />
       <rosparam param="dev_list">['wlan0']</rosparam>
     </node>
+    
+    <node pkg="yei_tss_usb" name="tss_usb_node" type="tss_usb_node" output="screen">
+      <param name="port" value="/dev/robot/imu" />
+      <param name="frame_id" value="imu" />
+      <param name="axis_config" value="zxy" />
+      <param name="invert_x_axis" value="true" />
+      <param name="invert_y_asis" value="true" />
+      <param name="invert_z_axis" value="true" />
+      <param name="orientation_covariance" value="0.1" />
+      <param name="angular_velocity_covariance" value="0.1" />
+      <param name="linear_acceleration_covariance" value="0.1" />
+      <rosparam param="gravity_vector">[ 0.0, 0.0, -9.80662 ]</rosparam>
+    </node>
 
     <node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node"
      output="screen" respawn="true">
