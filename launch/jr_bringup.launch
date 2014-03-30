@@ -1,5 +1,9 @@
 <?xml version="1.0"?>
 <launch>
+  <arg name="wheel_diam" default="0.119558" />
+  <arg name="wheel_diam2" default="0.123678" />
+  <arg name="wheel_base" default="0.258589" />
+
   <group ns="$(env ROBOT)">
     <param name="robot_description"
       command="$(find xacro)/xacro.py '$(find jr_description)/urdf/jr.urdf.xacro'" />
@@ -20,8 +24,9 @@
     <node pkg="nodelet" type="nodelet" name="base_controller"
       args="load diff_drive_controller/base_controller_nodelet nodelet_manager"
       output="screen">
-      <param name="wheel_base" value="0.2286" />
-      <param name="wheel_diam" value="0.117475" />
+      <param name="wheel_base" value="$(arg wheel_base)" />
+      <param name="wheel_diam" value="$(arg wheel_diam)" />
+      <param name="wheel_diam2" value="$(arg wheel_diam2)" />
       <param name="left_wheel_joint" value="base_link_to_front_left_wheel_joint" />
       <param name="right_wheel_joint" value="base_link_to_front_right_wheel_joint" />
     </node>
@@ -30,8 +35,9 @@
       args="load diff_drive_controller/base_twist_nodelet nodelet_manager"
       output="screen">
       <param name="frame_id" value="base_footprint" />
-      <param name="wheel_base" value="0.2286" />
-      <param name="wheel_diam" value="0.117475" />
+      <param name="wheel_base" value="$(arg wheel_base)" />
+      <param name="wheel_diam" value="$(arg wheel_diam)" />
+      <param name="wheel_diam2" value="$(arg wheel_diam2)" />
       <param name="left_wheel_joint" value="base_link_to_front_left_wheel_joint" />
       <param name="right_wheel_joint" value="base_link_to_front_right_wheel_joint" />
       <remap from="joint_state" to="kangaroo_driver_node/joint_state" />
@@ -41,11 +47,15 @@
       args="load diff_drive_controller/basic_twist_integrator_nodelet nodelet_manager"
       output="screen">
       <param name="frame_id" value="encoder_odom" />
-      <param name="pub_transform" value="true" />
+      <param name="pub_transform" value="false" />
+      <param name="x_covariance" value="30" />
+      <param name="y_covariance" value="30" /> 
+      <param name="yaw_covariance" value="1000" />
+      <remap from="odom" to="encoder_odom" />
     </node>
 
     <node pkg="joint_state_publisher" type="joint_state_publisher"
-     name="joint_state_publisher" respawn="true" output="screen">
+      name="joint_state_publisher" respawn="true" output="screen">
       <param name="use_gui" value="false" />
       <param name="rate" value="30" />
       <param name="publish_default_positions" value="true" />
@@ -74,9 +84,21 @@
     </node>
 
     <node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node"
-     output="screen" respawn="true">
+      output="screen" respawn="true">
       <param name="frame_id" value="laser" />
       <param name="port" value="/dev/robot/lidar" />
+    </node>
+
+    <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf"
+      output="screen">
+      <param name="output_frame" value="odom_combined" />
+      <param name="odom_used" value="true" />
+      <param name="imu_used" value="false" />
+      <param name="vo_used" value="true" />
+      <remap from="robot_pose_ekf/odom_combined" to="odom_combined" />
+      <remap from="odom" to="encoder_odom" />
+      <remap from="imu_data" to="imu/data" />
+      <remap from="vo" to="lidar_odom" />
     </node>
   </group>
 </launch>
