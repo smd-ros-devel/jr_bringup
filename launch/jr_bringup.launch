@@ -10,6 +10,22 @@
 
     <node pkg="nodelet" name="nodelet_manager" type="nodelet" args="manager" respawn="true" output="screen" />
 
+    <!-- group ns="camera">
+      <node pkg="nodelet" type="nodelet" name="freenect_driver"
+            args="load freenect_camera/driver /$(env ROBOT)/nodelet_manager"
+            output="screen" respawn="true">
+        <param name="device_id" value="#1" />
+        <param name="rgb_frame_id" value="/$(env ROBOT)/camera_rgb_optical_frame" />
+        <param name="depth_frame_id" value="/$(env ROBOT)/camera_depth_optical_frame" />
+        <param name="depth_registration" value="false" />
+      </node>
+
+      <include file="$(find rgbd_launch)/launch/includes/processing.launch.xml">
+        <arg name="manager" value="/$(env ROBOT)/nodelet_manager" />
+        <arg name="respawn" value="true" />
+      </include>
+    </group -->
+
     <!-- -->
     <node name="robot_state_publisher"
       pkg="robot_state_publisher"
@@ -91,17 +107,38 @@
       <param name="port" value="/dev/robot/lidar" />
     </node>
 
+    <!--group ns="asdf">
+    <node pkg="urg_node" type="urg_node" name="urg_node"
+      output="screen" respawn="true">
+      <param name="frame_id" value="laser" />
+      <param name="serial_port" value="/dev/robot/lidar" />
+      <param name="serial_baud" value="115200" /-->
+      <!--param name="angle_min" value="-2.09234979468" /-->
+      <!--param name="angle_max" value="2.09234979468" /-->
+    <!--/node>
+    </group-->
+
     <!-- -->
     <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf"
       output="screen">
       <param name="output_frame" value="odom_combined" />
       <param name="odom_used" value="true" />
       <param name="imu_used" value="false" />
-      <param name="vo_used" value="true" />
+      <param name="vo_used" value="false" />
       <remap from="robot_pose_ekf/odom_combined" to="odom_combined" />
       <remap from="odom" to="encoder_odom" />
       <remap from="imu_data" to="imu/data" />
       <remap from="vo" to="lidar_odom" />
     </node>
+
+    <node pkg="jr_hector_map_server" type="jr_hector_map_server_node" name="jr_hector_map_server_node" output="screen"/>
+
+
+    <node pkg="pose_to_odom" type="pose_to_odom_node" name="pose_to_odom" output="screen"/>
+
+    <include file="$(find jr_mapping_bringup)/jr_hector_mapping.launch"/>
+
+    <include file="$(find jr_2d_nav)/navigation.launch"/>
+
   </group>
 </launch>
