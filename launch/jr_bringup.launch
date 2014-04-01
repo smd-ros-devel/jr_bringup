@@ -10,6 +10,7 @@
 
     <node pkg="nodelet" name="nodelet_manager" type="nodelet" args="manager" respawn="true" output="screen" />
 
+    <!-- -->
     <node name="robot_state_publisher"
       pkg="robot_state_publisher"
       type="robot_state_publisher" />
@@ -54,6 +55,7 @@
       <remap from="odom" to="encoder_odom" />
     </node>
 
+    <!-- -->
     <node pkg="joint_state_publisher" type="joint_state_publisher"
       name="joint_state_publisher" respawn="true" output="screen">
       <param name="use_gui" value="false" />
@@ -70,7 +72,7 @@
       <rosparam param="dev_list">['wlan0']</rosparam>
     </node>
     
-    <node pkg="yei_tss_usb" name="tss_usb_node" type="tss_usb_node" output="screen">
+    <!--node pkg="yei_tss_usb" name="tss_usb_node" type="tss_usb_node" output="screen">
       <param name="port" value="/dev/robot/imu" />
       <param name="frame_id" value="imu" />
       <param name="axis_config" value="zxy" />
@@ -81,7 +83,7 @@
       <param name="angular_velocity_covariance" value="0.1" />
       <param name="linear_acceleration_covariance" value="0.1" />
       <rosparam param="gravity_vector">[ 0.0, 0.0, -9.80662 ]</rosparam>
-    </node>
+    </node -->
 
     <node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node"
       output="screen" respawn="true">
@@ -89,6 +91,7 @@
       <param name="port" value="/dev/robot/lidar" />
     </node>
 
+    <!-- -->
     <node pkg="robot_pose_ekf" type="robot_pose_ekf" name="robot_pose_ekf"
       output="screen">
       <param name="output_frame" value="odom_combined" />
