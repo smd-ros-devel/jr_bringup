@@ -1,0 +1,100 @@
+<?xml version="1.0"?>
+<launch>
+
+  <arg name="wheel_diam" default="0.119558" />
+  <arg name="wheel_diam2" default="0.123678" />
+  <arg name="wheel_base" default="0.258589" />
+
+  <group ns="$(env ROBOT)">
+    <node pkg="nodelet" name="nodelet_manager" type="nodelet" args="manager" respawn="true" output="screen" />
+
+    <param name="robot_description"
+      command="$(find xacro)/xacro.py '$(find jr_description)/urdf/jr.urdf.xacro'" />
+
+    <node name="robot_state_publisher"
+      pkg="robot_state_publisher"
+      type="robot_state_publisher">
+      <param name="publish_frequency" value="50.0" />
+    </node>
+
+    <node pkg="joint_state_publisher" type="joint_state_publisher"
+      name="joint_state_publisher" respawn="true" output="screen">
+      <param name="use_gui" value="false" />
+      <param name="rate" value="30" />
+      <param name="publish_default_positions" value="true" />
+      <param name="publish_default_velocities" value="true" />
+      <rosparam param="source_list">['kangaroo_driver_node/joint_state']</rosparam>
+    </node>
+
+    <node pkg="nodelet" type="nodelet" name="base_controller"
+      args="load diff_drive_controller/base_controller_nodelet nodelet_manager"
+      output="screen">
+      <param name="wheel_base" value="$(arg wheel_base)" />
+      <param name="wheel_diam" value="$(arg wheel_diam)" />
+      <param name="wheel_diam2" value="$(arg wheel_diam2)" />
+      <param name="left_wheel_joint" value="base_link_to_front_left_wheel_joint" />
+      <param name="right_wheel_joint" value="base_link_to_front_right_wheel_joint" />
+    </node>
+
+    <node pkg="nodelet" type="nodelet" name="base_pose"
+      args="load diff_drive_controller/base_pose_nodelet nodelet_manager"
+      output="screen">
+      <param name="frame_id" value="odom_combined" />
+      <param name="child_frame_id" value="base_footprint"/>
+      <param name="wheel_base" value="$(arg wheel_base)" />
+      <param name="wheel_diam" value="$(arg wheel_diam)" />
+      <param name="wheel_diam2" value="$(arg wheel_diam2)" />
+      <param name="left_wheel_joint" value="base_link_to_front_left_wheel_joint" />
+      <param name="right_wheel_joint" value="base_link_to_front_right_wheel_joint" />
+      <remap from="joint_state" to="kangaroo_driver_node/joint_state" />
+      <param name="pub_transform" value="true"/>
+    </node>
+
+    <node pkg="kangaroo_driver" name="kangaroo_driver" type="kangaroo_driver_node" respawn="true" output="screen">
+      <param name="port" value="/dev/robot/motor_controller" />
+      <param name="ch1_joint_name" value="base_link_to_front_left_wheel_joint" />
+      <param name="ch2_joint_name" value="base_link_to_front_right_wheel_joint" />
+      <remap from="joint_state" to="kangaroo_driver_node/joint_state" />
+    </node>
+
+
+    <node pkg="nodelet" type="nodelet" name="wifi_monitor"
+      args="load smd_wifi_monitor/wifimon nodelet_manager"
+      output="screen" respawn="true">
+      <param name="poll_interval" value="2" />
+      <rosparam param="dev_list">['wlan0']</rosparam>
+    </node>
+
+    <node pkg="yei_tss_usb" name="tss_usb_node" type="tss_usb_node" output="screen">
+      <param name="port" value="/dev/robot/imu" />
+      <param name="frame_id" value="imu" />
+      <param name="axis_config" value="zxy" />
+      <param name="invert_x_axis" value="true" />
+      <param name="invert_y_asis" value="true" />
+      <param name="invert_z_axis" value="true" />
+      <param name="orientation_covariance" value="0.1" />
+      <param name="angular_velocity_covariance" value="0.1" />
+      <param name="linear_acceleration_covariance" value="0.1" />
+      <!--rosparam param="gravity_vector">[ 0.0, 0.0, -9.80662 ]</rosparam-->
+    </node>
+
+    <node pkg="hokuyo_node" type="hokuyo_node" name="hokuyo_node"
+      output="screen" respawn="true">
+      <param name="frame_id" value="laser" />
+      <param name="port" value="/dev/robot/lidar" />
+    </node>
+
+    <node pkg="odom_to_pose_covariance" type="odom_to_pose_covariance_node" name="odom_to_pose_covariance_node"
+      output="screen" respawn="true"/>
+
+    <node pkg="hector_pose_estimation" type="pose_estimation" name="hector_localization_ekf"
+      output="screen" respawn="true"> 
+      <remap from="raw_imu" to="imu/data"/>
+      <remap from="magnetic" to="imu/mag"/>
+    </node>
+
+    <include file="$(find jr_mapping_bringup)/jr_hector_mapping.launch"/>
+
+  </group>
+
+</launch>

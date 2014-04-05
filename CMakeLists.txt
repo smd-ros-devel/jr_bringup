@@ -142,6 +142,7 @@ include_directories(
 ## Mark other files for installation (e.g. launch and bag files, etc.)
 install(FILES
   launch/jr_bringup.launch
+  launch/localization_test.launch
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
 
